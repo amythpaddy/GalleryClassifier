@@ -14,8 +14,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.caragiz_studios.classifiedgallery.helpers.Classifier;
 import com.caragiz_studios.classifiedgallery.helpers.ImageClassifier;
 import com.caragiz_studios.classifiedgallery.helpers.Model_images;
+import com.caragiz_studios.classifiedgallery.helpers.TFlIteClassifier;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,9 +29,11 @@ public class ActivityMain extends AppCompatActivity {
     boolean boolean_folder = false;
     ImageView showImg;
     TextView imagePrediction;
-    ImageClassifier classifier;
+    Classifier classifier;
     int i = 0;
     int j = -1;
+    private static final String MODEL_PATH = "optimized_graph.lite";
+    private static final String LABEL_PATH = "retrained_labels.txt";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,7 +115,11 @@ public class ActivityMain extends AppCompatActivity {
 
     private void initializeClassifier() {
         try {
-            classifier = new ImageClassifier(this);
+//            classifier = new ImageClassifier(this);
+            classifier = TFlIteClassifier.create(getAssets(),
+                    MODEL_PATH,
+                    LABEL_PATH,
+                    224);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -121,10 +129,18 @@ public class ActivityMain extends AppCompatActivity {
         if (classifier == null)
             Toast.makeText(this, "Classifier not initialized", Toast.LENGTH_SHORT).show();
 
-        bmp = Bitmap.createScaledBitmap(bmp, 224, 224, true);
-        String result = classifier.classifyFrame(bmp);
-        Toast.makeText(this, result, Toast.LENGTH_SHORT).show();
+        bmp = Bitmap.createScaledBitmap(bmp, 224, 224, false);
+//        String result = classifier.classifyFrame(bmp);
+        List<Classifier.Recognition> result = classifier.recognizeImage(bmp);
+        Toast.makeText(this, result.get(0).getTitle(), Toast.LENGTH_SHORT).show();
         bmp.recycle();
-        Log.i("Result", result);
+        Log.i("Result", result.get(0).getId());
+        Log.i("Confidence", result.get(0).getConfidence()+"");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        classifier.close();
     }
 }
