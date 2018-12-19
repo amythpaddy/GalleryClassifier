@@ -11,8 +11,9 @@ import android.widget.TextView;
 import com.caragiz_studios.classifiedgallery.adapter.CategoryAdapter;
 import com.caragiz_studios.classifiedgallery.database.Entity;
 import com.caragiz_studios.classifiedgallery.database.ImageDatabase;
+import com.caragiz_studios.classifiedgallery.helpers.FullScreenActivity;
 
-public class ActivityShowCategory extends AppCompatActivity {
+public class ActivityShowCategory extends FullScreenActivity {
 
     ImageDatabase imageDb;
     RecyclerView categoryList;

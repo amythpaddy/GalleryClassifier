@@ -9,10 +9,11 @@ public interface DbDao {
     @Insert
     public void addNew(Entity entity);
 
-    @Query("SELECT distinct category FROM entity WHERE category = :categoryName")
-    public String[] loadAllInCategory(String categoryName);
+    @Query("SELECT * FROM entity WHERE category = :categoryName")
+    public Entity[] loadAllInCategory(String categoryName);
 
     @Query("SELECT distinct category FROM entity")
     String[] loadAllCategories();
+
 
 }

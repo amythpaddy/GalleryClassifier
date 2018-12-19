@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.caragiz_studios.classifiedgallery.ActivityShowCategory;
+import com.caragiz_studios.classifiedgallery.ActivityShowImageList;
 import com.caragiz_studios.classifiedgallery.R;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
@@ -69,7 +70,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
             @Override
             public void onClick(View v) {
                 Toast.makeText(context, categories[i], Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(context , ActivityShowCategory.class);
+                Intent intent = new Intent(context , ActivityShowImageList.class);
                 intent.putExtra("category_name",categories[i]);
                 context.startActivity(intent);
             }

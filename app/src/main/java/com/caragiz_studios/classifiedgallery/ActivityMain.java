@@ -1,13 +1,18 @@
 package com.caragiz_studios.classifiedgallery;
 
+import android.Manifest;
 import android.arch.persistence.room.Room;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +25,7 @@ import com.bumptech.glide.Glide;
 import com.caragiz_studios.classifiedgallery.database.Entity;
 import com.caragiz_studios.classifiedgallery.database.ImageDatabase;
 import com.caragiz_studios.classifiedgallery.helpers.Classifier;
+import com.caragiz_studios.classifiedgallery.helpers.FullScreenActivity;
 import com.caragiz_studios.classifiedgallery.helpers.ImageClassifier;
 import com.caragiz_studios.classifiedgallery.helpers.Model_images;
 import com.caragiz_studios.classifiedgallery.helpers.TFlIteClassifier;
@@ -28,7 +34,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ActivityMain extends AppCompatActivity {
+public class ActivityMain extends FullScreenActivity {
+    private static final int RQ_READ_ACCESS = 1007;
     private static final String DATABASE = "image_db";
     public static List<Model_images> al_menu = new ArrayList<>();
     boolean boolean_folder = false;
@@ -49,7 +56,13 @@ public class ActivityMain extends AppCompatActivity {
                 .build();
         Toast.makeText(this, "DB INitialized", Toast.LENGTH_SHORT).show();
         initializeClassifier();
-        getAllImages();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED)
+            getAllImages();
+        else
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    RQ_READ_ACCESS);
     }
 
 
@@ -69,6 +82,17 @@ public class ActivityMain extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == RQ_READ_ACCESS && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            getAllImages();
+        else {
+            Toast.makeText(this, "Permission is required for app to work", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
+
     private void predictImage() {
         j++;
 
@@ -79,6 +103,8 @@ public class ActivityMain extends AppCompatActivity {
         if (i == al_menu.size()) {
             Toast.makeText(this, "All Images Classified", Toast.LENGTH_SHORT).show();
             i = 0;
+            startActivity(new Intent(ActivityMain.this, ActivityShowCategory.class));
+            finish();
         } else {
 //        Glide.with(this).load(al_menu.get(i).getAl_imagepath().get(j))
 //                .into(showImg);
@@ -173,7 +199,11 @@ public class ActivityMain extends AppCompatActivity {
             public void run() {
                 Entity entity = new Entity();
                 entity.path = path;
-                entity.category = result.get(0).getTitle();
+                entity.confidence = result.get(0).getConfidence();
+                if (result.get(0).getConfidence() < 0.6)
+                    entity.category = "unclassified";
+                else
+                    entity.category = result.get(0).getTitle();
                 try {
                     imageDb.dbDao().addNew(entity);
 
@@ -186,7 +216,7 @@ public class ActivityMain extends AppCompatActivity {
                 } catch (SQLException e) {
                     startActivity(new Intent(ActivityMain.this, ActivityShowCategory.class));
                     finish();
-                    Log.e("Status:","Complete");
+                    Log.e("Status:", "Complete");
                 }
             }
         }).start();

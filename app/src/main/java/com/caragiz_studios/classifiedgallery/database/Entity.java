@@ -9,4 +9,5 @@ public class Entity {
     @NonNull
     public String path;
     public String category;
+    public float confidence;
 }
